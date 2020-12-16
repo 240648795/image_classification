@@ -89,5 +89,5 @@ if __name__ == '__main__':
     print(predictions)
 
     # 这是看第一层卷积后的图
-    layer_output_show(r'./data/test_image/panda_00022_0.jpg', 5, predict_model, predict_model_details)
+    layer_output_show(r'./data/test_image/panda_00022_0.jpg', 10, predict_model, predict_model_details)
     pass
