@@ -160,10 +160,10 @@ EPOCHS = 100
 BATCH_SIZE = 32
 
 if __name__ == '__main__':
-    image_path = r'./data/exp_image'
-    save_model_path = r'save_models/models/work_condition_vgg.h5'
-    save_model_details_path = r'save_models/details/work_condition_details.joblib'
-    save_plot_path = r'train_plot/work_condition_plot.png'
+    image_path = r'./data/cat_dog_image'
+    save_model_path = r'save_models/models/cat_dog_image_vgg.h5'
+    save_model_details_path = r'save_models/details/cat_dog_image_vgg_details.joblib'
+    save_plot_path = r'train_plot/cat_dog_image_vgg_plot.png'
     resize_width = 64
     resize_height = 64
 

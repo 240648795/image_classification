@@ -140,21 +140,21 @@ class Augmentation(object):
 
 
 if __name__ == '__main__':
-    # 将视频转化为图片
-    # save_img(r'../../data/video/', r'../data/exp_image/', 64, 32, 5)
+    # 将视频转化为图片，生成前请删除../data/exp_image/下的文件夹
+    save_img(r'../../data/video/', r'../data/exp_image/', 64 * 15, 32 * 15, 20)
 
     # 按照类别生成随即图片
-    base_dir = os.path.join(sys.path[1], '')
-    pic_path = base_dir + 'data/cat_dog_image/'
-    save_path = base_dir + 'data/cat_dog_generate/'
-    for root, dirs, files in os.walk(pic_path):
-        for dir in dirs:
-            picsrc = root + dir
-            savedir = save_path + dir
-            if not os.path.lexists(savedir):
-                os.mkdir(savedir)
-            aug = Augmentation()
-            aug.batchgenerate(picsrc, savedir, 5)
+    # base_dir = os.path.join(sys.path[1], '')
+    # pic_path = base_dir + 'data/cat_dog_image/'
+    # save_path = base_dir + 'data/cat_dog_generate/'
+    # for root, dirs, files in os.walk(pic_path):
+    #     for dir in dirs:
+    #         picsrc = root + dir
+    #         savedir = save_path + dir
+    #         if not os.path.lexists(savedir):
+    #             os.mkdir(savedir)
+    #         aug = Augmentation()
+    #         aug.batchgenerate(picsrc, savedir, 5)
 
     # 单次变换图片的程序
     # base_dir = os.path.join(sys.path[1], '')
