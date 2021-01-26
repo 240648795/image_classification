@@ -73,21 +73,22 @@ def layer_output_show(image_path, layer_num, model, saved_model_details):
         plt.subplot(4, features_num // 4, _ + 1)
         plt.imshow(show_img)
         plt.axis('off')
+        plt.savefig('./document/test.jpg',bbox_inches ='tight')
     plt.show()
 
 
 # 初始化的时候就加载好权重和模型信息
-predict_model, predict_model_details = create_prediction(r'save_models/models/cat_dog_weights_vgg.h5',
-                                                         r'save_models/details/cat_dog_vgg_details.joblib')
+predict_model, predict_model_details = create_prediction(r'save_models/models/work_condition_vgg.h5',
+                                                         r'save_models/details/work_condition_details.joblib')
 
 if __name__ == '__main__':
     # 第一个参数为图片地址，第二参数为模型权重，第三个参数为模型信息,这是预测
-    predictions = []
-    predictions.append(get_prediction(r'./data/test_image/dogs_00011.jpg', predict_model, predict_model_details))
-    predictions.append(get_prediction(r'./data/test_image/panda_00010.jpg', predict_model, predict_model_details))
-    predictions.append(get_prediction(r'./data/test_image/panda02.jpg', predict_model, predict_model_details))
-    print(predictions)
+    # predictions = []
+    # predictions.append(get_prediction(r'./data/test_image/dogs_00011.jpg', predict_model, predict_model_details))
+    # predictions.append(get_prediction(r'./data/test_image/panda_00010.jpg', predict_model, predict_model_details))
+    # predictions.append(get_prediction(r'./data/test_image/panda02.jpg', predict_model, predict_model_details))
+    # print(predictions)
 
     # 这是看第一层卷积后的图
-    layer_output_show(r'./data/test_image/panda_00022_0.jpg', 10, predict_model, predict_model_details)
+    layer_output_show(r'./data/exp_image/sisha/sisha_left_100.jpg', 3, predict_model, predict_model_details)
     pass

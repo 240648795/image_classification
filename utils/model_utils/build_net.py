@@ -25,10 +25,16 @@ class SimpleNet:
 			inputShape = (depth, height, width)
 			chanDim = 1
 
-		model.add(Conv2D(32, (3, 3), padding="same",
+		model.add(Conv2D(32, (5, 5), padding="same",
 						 input_shape=inputShape, kernel_initializer=TruncatedNormal(mean=0.0, stddev=0.01)))
 		model.add(Activation("relu"))
-		# model.add(BatchNormalization(axis=chanDim))
+		model.add(BatchNormalization(axis=chanDim))
+		model.add(MaxPooling2D(pool_size=(2, 2)))
+
+		model.add(Conv2D(64, (5, 5), padding="same",
+						 input_shape=inputShape, kernel_initializer=TruncatedNormal(mean=0.0, stddev=0.01)))
+		model.add(Activation("relu"))
+		model.add(BatchNormalization(axis=chanDim))
 		model.add(MaxPooling2D(pool_size=(2, 2)))
 
 		# FC层

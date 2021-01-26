@@ -14,7 +14,8 @@ import cv2
 import os
 from utils.image_utils import image_utils
 from utils.model_utils.model_details import SavedModelDetails
-from utils.model_utils.build_net import SimpleVGGNet
+from utils.model_utils.build_net import SimpleVGGNet, SimpleNet
+
 
 def load_data(datas_path, resize_width, resize_height):
     data = []
@@ -28,7 +29,22 @@ def load_data(datas_path, resize_width, resize_height):
         # 读取图像数据，由于使用神经网络，需要给定成一维
         image = cv2.imread(imagePath)
         image = cv2.resize(image, (resize_width, resize_height))
-        data.append(image)
+
+        img_org_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        img_org_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        h, s, v = cv2.split(img_org_hsv)
+        r, g, b = cv2.split(img_org_rgb)
+        img_org_hsv_rgb_trans = cv2.merge([r, g, b, h, s, v])
+        data.append(img_org_hsv_rgb_trans)
+
+        # h, s, v = cv2.split(img_org_hsv)
+        # s_list = [0 for i in range(0, s.shape[0] * s.shape[1])]
+        # s_list_np = np.asarray(s_list).reshape(s.shape).astype(s.dtype)
+        # v_list = [0 for i in range(0, v.shape[0] * v.shape[1])]
+        # v_list_np = np.asarray(v_list).reshape(v.shape).astype(v.dtype)
+        # img_org_hsv_trans = cv2.merge([h, s_list_np, v_list_np])
+        # data.append(img_org_hsv_trans)
+
         # 读取标签
         label = imagePath.split(os.path.sep)[-2]
         labels.append(label)
@@ -42,6 +58,7 @@ def load_data(datas_path, resize_width, resize_height):
                                                     trainValY, test_size=0.15, random_state=42)
     return (trainX, valX, testX, trainY, valY, testY)
 
+
 def generate_trainxy(trainX, trainY, BATCH_SIZE):
     total_size = trainX.shape[0]
     # 早前使用的方法，没有随机抽取样本
@@ -54,13 +71,14 @@ def generate_trainxy(trainX, trainY, BATCH_SIZE):
     #         count = 1
     #     yield (batch_x, batch_y)
     while 1:
-        random_nums=[]
+        random_nums = []
         for random_num_i in range(BATCH_SIZE):
             random_num = random.randint(0, total_size - 1)
             random_nums.append(random_num)
         batch_x = trainX[random_nums]
         batch_y = trainY[random_nums]
         yield (batch_x, batch_y)
+
 
 def train_model(trainX, trainY, validateX, validateY, EPOCHS, BATCH_SIZE, model, INIT_LR, model_path):
     aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
@@ -71,7 +89,7 @@ def train_model(trainX, trainY, validateX, validateY, EPOCHS, BATCH_SIZE, model,
     model.compile(loss="categorical_crossentropy", optimizer=opt,
                   metrics=["accuracy"])
 
-    # 有一次提升, 则覆盖一次,保证最好的一次被保存
+    # 有一次提升, 则覆盖一次,保证最好的一次被保存,现在是val_accuracy为衡量标准
     checkpoint = keras.callbacks.ModelCheckpoint(model_path, monitor='val_accuracy', verbose=1,
                                                  save_best_only=True, mode='max')
     callbacks_list = [checkpoint]
@@ -88,8 +106,10 @@ def train_model(trainX, trainY, validateX, validateY, EPOCHS, BATCH_SIZE, model,
     H = model.fit_generator(aug.flow(trainX, trainY, batch_size=BATCH_SIZE),
                             validation_data=(validateX, validateY), steps_per_epoch=len(trainX) // BATCH_SIZE,
                             epochs=EPOCHS)
+    model.save_weights(model_path)
 
     return H
+
 
 def evaluate_model(model, EPOCHS, testX, testY, H, BATCH_SIZE, lable_bin, plot_path):
     predictions = model.predict(testX, batch_size=BATCH_SIZE)
@@ -109,6 +129,7 @@ def evaluate_model(model, EPOCHS, testX, testY, H, BATCH_SIZE, lable_bin, plot_p
     plt.legend()
     plt.savefig(plot_path)
 
+
 def train_process(image_path, save_model_path, save_model_details_path, save_plot_path, resize_width, resize_height):
     # 设置超参数
     # 用原始图像用cat_dog_image
@@ -124,7 +145,7 @@ def train_process(image_path, save_model_path, save_model_details_path, save_plo
     resize_width = resize_width
     resize_height = resize_height
 
-    # 学习率和轮数
+    # 学习率和轮数0
     # INIT_LR = 0.01
     # EPOCHS = 100
     # BATCH_SIZE = 32
@@ -139,8 +160,9 @@ def train_process(image_path, save_model_path, save_model_details_path, save_plo
     valY = lb.transform(valY)
 
     print("[INFO] 建立模型")
-    model = SimpleVGGNet.build(width=resize_width, height=resize_height, depth=3,
-                               classes=len(lb.classes_))
+    # 这里可以切换SimpleVGGNet和SimpleNet
+    model = SimpleNet.build(width=resize_width, height=resize_height, depth=IMAGE_DEPTH,
+                            classes=len(lb.classes_))
     print("[INFO] 准备训练网络...")
     H = train_model(trainX, trainY, valX, valY, EPOCHS, BATCH_SIZE, model, INIT_LR, save_model_path)
     print("[INFO] 正在评估模型")
@@ -155,12 +177,16 @@ def train_process(image_path, save_model_path, save_model_details_path, save_plo
     with open(save_model_details_path, 'wb') as f:
         f.write(pickle.dumps(saved_model_details))
 
-INIT_LR = 0.01
-EPOCHS = 100
+    print("[INFO] 全部训练完毕")
+
+
+INIT_LR = 0.001
+EPOCHS = 300
 BATCH_SIZE = 32
+IMAGE_DEPTH = 6
 
 if __name__ == '__main__':
-    image_path = r'./data/exp_image'
+    image_path = r'./data/cut_material_image'
     save_model_path = r'save_models/models/cut_material_image_vgg.h5'
     save_model_details_path = r'save_models/details/cut_material_image_vgg_details.joblib'
     save_plot_path = r'train_plot/cut_material_image_vgg_plot.png'
